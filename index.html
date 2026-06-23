@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Studio Pro</title>
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --surface-dark: #1e1e1e;
+            --primary: #3a47d5;
+            --secondary: #00d2ff;
+            --text-light: #ffffff;
+            --text-muted: #aaaaaa;
+            --border-color: #333333;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .admin-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        .admin-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        main {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            main {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .controls, .preview {
+            background-color: var(--surface-dark);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        select, input, textarea {
+            width: 100%;
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            color: var(--text-light);
+            padding: 0.8rem;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        select:focus, input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--secondary);
+        }
+
+        .generate-btn {
+            width: 100%;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 1rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        .generate-btn:hover {
+            opacity: 0.9;
+        }
+
+        .preview {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+        }
+
+        .loader {
+            display: none;
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--secondary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #resultImage {
+            max-width: 100%;
+            max-height: 600px;
+            border-radius: 4px;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+
+        .placeholder-text {
+            color: var(--text-muted);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: var(--surface-dark);
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            border-radius: 8px;
+            padding: 2rem;
+            overflow-y: auto;
+            position: relative;
+            border: 1px solid var(--border-color);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .history-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .history-item {
+            background: var(--bg-dark);
+            padding: 0.5rem;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        .history-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 2px;
+        }
+
+        .history-item p {
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            word-break: break-word;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>AI Studio Pro</h1>
+        <button class="admin-btn" id="adminBtn">Admin</button>
+    </header>
+
+    <main>
+        <div class="controls">
+            <div class="form-group">
+                <label for="useCase">Use Case (Dimensions)</label>
+                <select id="useCase">
+                    <option value="1024x576">1024x576 YouTube 16:9</option>
+                    <option value="1024x1024">1024x1024 Instagram Post 1:1</option>
+                    <option value="1024x1792">1024x1792 Instagram Story 9:16</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="style">Style</label>
+                <select id="style">
+                    <option value="Real Photo">Real Photo</option>
+                    <option value="3D Render">3D Render</option>
+                    <option value="Anime">Anime</option>
+                    <option value="Cartoon">Cartoon</option>
+                    <option value="Digital Art">Digital Art</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="prompt">Prompt</label>
+                <textarea id="prompt" placeholder="Describe the image you want to generate..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="addText">Add Text Overlay (Optional)</label>
+                <input type="text" id="addText" placeholder="Text to include in the image...">
+            </div>
+
+            <button class="generate-btn" id="generateBtn">Generate Image</button>
+        </div>
+
+        <div class="preview">
+            <span class="placeholder-text" id="placeholderText">Your generated image will appear here</span>
+            <div class="loader" id="loader"></div>
+            <img id="resultImage" alt="Generated Artwork">
+        </div>
+    </main>
+
+    <div class="modal" id="adminModal">
+        <div class="modal-content">
+            <button class="close-btn" id="closeAdminBtn">&times;</button>
+            <h2>Admin Panel: Generation History</h2>
+            <div class="history-grid" id="historyGrid"></div>
+        </div>
+    </div>
+
+    <script>
+        const adminBtn = document.getElementById('adminBtn');
+        const generateBtn = document.getElementById('generateBtn');
+        const adminModal = document.getElementById('adminModal');
+        const closeAdminBtn = document.getElementById('closeAdminBtn');
+        const historyGrid = document.getElementById('historyGrid');
+        
+        const useCaseSelect = document.getElementById('useCase');
+        const styleSelect = document.getElementById('style');
+        const promptInput = document.getElementById('prompt');
+        const addTextInput = document.getElementById('addText');
+        
+        const loader = document.getElementById('loader');
+        const resultImage = document.getElementById('resultImage');
+        const placeholderText = document.getElementById('placeholderText');
+
+        adminBtn.addEventListener('click', () => {
+            const pwd = prompt("Enter Admin Password:");
+            if (pwd === "@JASHBEER04") {
+                showAdminPanel();
+            } else if (pwd !== null) {
+                alert("Access Denied");
+            }
+        });
+
+        closeAdminBtn.addEventListener('click', () => {
+            adminModal.style.display = 'none';
+        });
+
+        function showAdminPanel() {
+            adminModal.style.display = 'flex';
+            historyGrid.innerHTML = '';
+            
+            const history = JSON.parse(localStorage.getItem('aiStudioHistory')) || [];
+            
+            if (history.length === 0) {
+                historyGrid.innerHTML = '<p style="color:#aaa;">No generations yet.</p>';
+                return;
+            }
+
+            history.reverse().forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                div.innerHTML = `
+                    <img src="${item.url}" alt="History Image" loading="lazy">
+                    <p><strong>Prompt:</strong> ${item.prompt}</p>
+                    <p style="font-size:0.7rem;margin-top:4px;">${new Date(item.timestamp).toLocaleString()}</p>
+                `;
+                historyGrid.appendChild(div);
+            });
+        }
+
+        generateBtn.addEventListener('click', () => {
+            let basePrompt = promptInput.value.trim();
+            if (!basePrompt) {
+                alert("Please enter a prompt.");
+                return;
+            }
+
+            basePrompt = basePrompt.replace(/doremon/gi, "blue robot cat cartoon");
+
+            const style = styleSelect.value;
+            const textOverlay = addTextInput.value.trim();
+            
+            let finalPrompt = `${basePrompt}, highly detailed, ${style} style`;
+            if (textOverlay) {
+                finalPrompt += `, featuring the text "${textOverlay}" written clearly`;
+            }
+
+            const dimensions = useCaseSelect.value.split('x');
+            const width = dimensions[0];
+            const height = dimensions[1];
+            const seed = Math.floor(Math.random() * 1000000);
+            
+            const encodedPrompt = encodeURIComponent(finalPrompt);
+            const apiUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&nologo=true&model=flux&seed=${seed}`;
+
+            placeholderText.style.display = 'none';
+            resultImage.style.display = 'none';
+            loader.style.display = 'block';
+            generateBtn.disabled = true;
+            generateBtn.style.opacity = '0.5';
+
+            resultImage.onload = () => {
+                loader.style.display = 'none';
+                resultImage.style.display = 'block';
+                generateBtn.disabled = false;
+                generateBtn.style.opacity = '1';
+                saveToHistory(finalPrompt, apiUrl);
+            };
+
+            resultImage.onerror = () => {
+                loader.style.display = 'none';
+                placeholderText.style.display = 'block';
+                placeholderText.textContent = "Error generating image. Try again.";
+                generateBtn.disabled = false;
+                generateBtn.style.opacity = '1';
+            };
+
+            resultImage.src = apiUrl;
+        });
+
+        function saveToHistory(promptText, imageUrl) {
+            const history = JSON.parse(localStorage.getItem('aiStudioHistory')) || [];
+            history.push({
+                prompt: promptText,
+                url: imageUrl,
+                timestamp: new Date().toISOString()
+            });
+            localStorage.setItem('aiStudioHistory', JSON.stringify(history));
+        }
+    </script>
+</body>
+  </html>
