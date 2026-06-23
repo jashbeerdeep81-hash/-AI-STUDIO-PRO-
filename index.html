@@ -1,0 +1,40 @@
+document.getElementById('generate-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const prompt = document.getElementById('prompt').value;
+    const style = document.getElementById('style').value;
+    const addText = document.getElementById('add-text').value;
+    const useCase = document.getElementById('use-case').value;
+    
+    if (!prompt) {
+        alert('Please enter what to create');
+        return;
+    }
+
+    const loader = document.getElementById('loader');
+    const img = document.getElementById('generated-image');
+    loader.style.display = 'inline-block';
+    img.style.display = 'none';
+
+    const [width, height] = useCase.split('x');
+    
+    let safePrompt = prompt.toLowerCase().replace('doremon', 'blue robot cat cartoon');
+    let finalPrompt = `${safePrompt}, ${style} style, high quality, detailed, 8k`;
+    if(addText) finalPrompt += `, text "${addText}"`;
+    
+    const seed = Math.floor(Math.random() * 100000);
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(finalPrompt)}?width=${width}&height=${height}&nologo=true&model=flux&seed=${seed}`;
+    
+    img.onload = () => {
+        loader.style.display = 'none';
+        img.style.display = 'block';
+        saveToHistory(prompt, imageUrl);
+    };
+    
+    img.onerror = () => {
+        loader.style.display = 'none';
+        img.style.display = 'none';
+        alert('Server busy. Try again or use different prompt');
+    };
+    
+    img.src = imageUrl;
+});
